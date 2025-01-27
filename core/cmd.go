@@ -7,20 +7,12 @@ import (
 	"strings"
 )
 
-// Function to run an ADB command.
-// Take arguments comma separated.
-// Example: RunAdbCommand(true, "input", "tap", "100", "100")
-func RunAdbCommand(throughADB bool, args ...string) (string, error) {
-	var cmd *exec.Cmd
+// Function to run ADB commands
+func RunAdbCommand(args ...string) (string, error) {
 	// Create the command object
-	if throughADB {
-		args = append([]string{"shell"}, args...)
-		cmd = exec.Command("adb", args...)
-		fmt.Println(cmd.String())
-	} else {
-		cmd = exec.Command(args[0], args[1:]...)
-		fmt.Println(cmd.String())
-	}
+	cmd := exec.Command("adb", args...)
+	fmt.Println(cmd.String())
+
 	// Capture standard output and standard error
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -35,4 +27,24 @@ func RunAdbCommand(throughADB bool, args ...string) (string, error) {
 	// Return the output
 	result := strings.TrimSpace(stdout.String())
 	return result, nil
+}
+
+// Function to run general shell commands
+func RunShellCommand(command string, args ...string) (string, error) {
+	// Create the command
+	cmd := exec.Command(command, args...)
+
+	// Capture the output
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	// Run the command
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("error executing command: %s, stderr: %s", err, stderr.String())
+	}
+
+	return out.String(), nil
 }
