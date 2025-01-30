@@ -48,3 +48,20 @@ func RunShellCommand(command string, args ...string) (string, error) {
 
 	return out.String(), nil
 }
+
+// Function to dump the XML of the current screen to a file /data/local/tmp/uidump.xml
+func DumpXMLToFile() error {
+	_, err := RunAdbCommand("shell", "uiautomator", "dump", "/data/local/tmp/uidump.xml")
+	if err != nil {
+		return fmt.Errorf("error dumping XML: %v", err)
+	}
+	return nil
+}
+
+func ReadXML() (string, error) {
+	out, err := RunAdbCommand("shell", "cat", "/data/local/tmp/uidump.xml")
+	if err != nil {
+		return "", err
+	}
+	return out, err
+}
