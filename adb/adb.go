@@ -209,3 +209,21 @@ func (adb *Adb) StopScreenRecording() error {
 	}
 	return nil
 }
+
+// Tap taps on the screen at the specified coordinates.
+func Tap(x, y int) error {
+	_, err := core.RunAdbCommand("shell", "input", "tap", fmt.Sprintf("%d", x), fmt.Sprintf("%d", y))
+	if err != nil {
+		return fmt.Errorf("failed to tap on screen at coordinates (%d, %d) - %v", x, y, err)
+	}
+	return nil
+}
+
+// Swipe swipes on the screen from the specified start to end coordinates.
+func Swipe(x1, y1, x2, y2 int) error {
+	_, err := core.RunAdbCommand("shell", "input", "swipe", fmt.Sprintf("%d", x1), fmt.Sprintf("%d", y1), fmt.Sprintf("%d", x2), fmt.Sprintf("%d", y2))
+	if err != nil {
+		return fmt.Errorf("failed to swipe on screen from (%d, %d) to (%d, %d) - %v", x1, y1, x2, y2, err)
+	}
+	return nil
+}
