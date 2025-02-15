@@ -7,14 +7,6 @@ import (
 	"github.com/T-BO0/go_ndroid/core"
 )
 
-// Bounds represents the bounds of an element
-type bounds struct {
-	Left   int `xml:"left,attr"`
-	Top    int `xml:"top,attr"`
-	Right  int `xml:"right,attr"`
-	Bottom int `xml:"bottom,attr"`
-}
-
 // Node represents a generic XML node
 type Node struct {
 	XMLName    xml.Name
