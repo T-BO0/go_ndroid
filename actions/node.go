@@ -87,3 +87,39 @@ func (node *Node) FindElementByContentDesc(contentDesc string) (*Node, error) {
 
 	return &Node{}, fmt.Errorf("element with content-desc %s not found", contentDesc)
 }
+
+// MustGetElementById function to find an element by id and panic if not found.
+func (node *Node) MustGetElementById(resourceId string) *Node {
+	n, err := node.FindElementById(resourceId)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
+// MustGetElementByText function to find an element by text and panic if not found.
+func (node *Node) MustGetElementByText(text string) *Node {
+	n, err := node.FindElementByText(text)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
+// MustGetElementByContentDesc function to find an element by content-desc and panic if not found.
+func (node *Node) MustGetElementByContentDesc(contentDesc string) *Node {
+	n, err := node.FindElementByContentDesc(contentDesc)
+	if err != nil {
+		panic(err)
+	}
+	return n
+}
+
+// MustGetPage function to get the root node of the XML and panic if not found.
+func MustGetPage() *Node {
+	node, err := GetPage()
+	if err != nil {
+		panic(err)
+	}
+	return node
+}

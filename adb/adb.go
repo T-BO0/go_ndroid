@@ -12,8 +12,18 @@ import (
 
 // Adb struct contains the DeviceID and PackageName which are used for device and app interactions.
 type Adb struct {
-	DeviceID    string // Unique ID of the Android device
-	PackageName string // The package name of the app being interacted with
+	DeviceID     string // Unique ID of the Android device
+	PackageName  string // The package name of the app being interacted with
+	MainActivity string // The main activity of the app being interacted with
+}
+
+// NewAdb creates a new Adb struct with the specified DeviceID and PackageName.
+func NewAdb(deviceID, packageName, mainActivity string) *Adb {
+	return &Adb{
+		DeviceID:     deviceID,
+		PackageName:  packageName,
+		MainActivity: mainActivity,
+	}
 }
 
 // ListDevices lists all the connected devices and returns their device IDs.
@@ -83,8 +93,8 @@ func (adb *Adb) UninstallApp() error {
 }
 
 // LaunchApp launches the app with the specified activity.
-func (adb *Adb) LaunchApp(activity string) error {
-	_, err := core.RunAdbCommand("shell", "am", "start", "-n", fmt.Sprintf("%s/%s", adb.PackageName, activity), "-S")
+func (adb *Adb) LaunchApp() error {
+	_, err := core.RunAdbCommand("shell", "am", "start", "-n", fmt.Sprintf("%s/%s", adb.PackageName, adb.MainActivity), "-S")
 	if err != nil {
 		return fmt.Errorf("failed to launch app - %v", err)
 	}
@@ -224,6 +234,24 @@ func Swipe(x1, y1, x2, y2 int) error {
 	_, err := core.RunAdbCommand("shell", "input", "swipe", fmt.Sprintf("%d", x1), fmt.Sprintf("%d", y1), fmt.Sprintf("%d", x2), fmt.Sprintf("%d", y2))
 	if err != nil {
 		return fmt.Errorf("failed to swipe on screen from (%d, %d) to (%d, %d) - %v", x1, y1, x2, y2, err)
+	}
+	return nil
+}
+
+// SwipeWithDuration swipes on the screen from the specified start to end coordinates with the specified duration.
+func SwipeWithDuration(x1, y1, x2, y2, duration int) error {
+	_, err := core.RunAdbCommand("shell", "input", "swipe", fmt.Sprintf("%d", x1), fmt.Sprintf("%d", y1), fmt.Sprintf("%d", x2), fmt.Sprintf("%d", y2), fmt.Sprintf("%d", duration))
+	if err != nil {
+		return fmt.Errorf("failed to swipe on screen from (%d, %d) to (%d, %d) with duration %d - %v", x1, y1, x2, y2, duration, err)
+	}
+	return nil
+}
+
+// InputText inputs the specified text on the device.
+func InputText(text string) error {
+	_, err := core.RunAdbCommand("shell", "input", "text", text)
+	if err != nil {
+		return fmt.Errorf("failed to input text %s - %v", text, err)
 	}
 	return nil
 }
