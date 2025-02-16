@@ -58,10 +58,55 @@ func DumpXMLToFile() error {
 	return nil
 }
 
+// Function to read the XML of the current screen from the file /data/local/tmp/uidump.xml
 func ReadXML() (string, error) {
 	out, err := RunAdbCommand("shell", "cat", "/data/local/tmp/uidump.xml")
 	if err != nil {
 		return "", err
 	}
 	return out, err
+}
+
+// Function to grant a permission to an app
+func GrantPermission(packageName, permission string) error {
+	_, err := RunAdbCommand("shell", "pm", "grant", packageName, permission)
+	if err != nil {
+		return fmt.Errorf("error granting permission: %v", err)
+	}
+	return nil
+}
+
+// Function to revoke a permission from an app
+func RevokePermission(packageName, permission string) error {
+	_, err := RunAdbCommand("shell", "pm", "revoke", packageName, permission)
+	if err != nil {
+		return fmt.Errorf("error revoking permission: %v", err)
+	}
+	return nil
+}
+
+// Function to grant all permissions to an app
+func GrantAllPermissions(packageName string) error {
+	// Get the list of permissions
+	permissions, err := RunAdbCommand("shell", "dumpsys", "package", packageName)
+	if err != nil {
+		return fmt.Errorf("error getting permissions: %v", err)
+	}
+
+	// Extract permission names
+	lines := strings.Split(permissions, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "android.permission") {
+			parts := strings.Fields(line)
+			if len(parts) > 1 {
+				permission := parts[1]
+				// Grant the permission
+				err := GrantPermission(packageName, permission)
+				if err != nil {
+					return fmt.Errorf("error granting permission %s: %v", permission, err)
+				}
+			}
+		}
+	}
+	return nil
 }

@@ -12,17 +12,20 @@ import (
 
 // Adb struct contains the DeviceID and PackageName which are used for device and app interactions.
 type Adb struct {
-	DeviceID     string // Unique ID of the Android device
-	PackageName  string // The package name of the app being interacted with
-	MainActivity string // The main activity of the app being interacted with
+	DeviceID           string // Unique ID of the Android device
+	PackageName        string // The package name of the app being interacted with
+	MainActivity       string // The main activity of the app being interacted with
+	WithAllPermissions bool   // Grant all permissions to the app
 }
 
-// NewAdb creates a new Adb struct with the specified DeviceID and PackageName.
-func NewAdb(deviceID, packageName, mainActivity string) *Adb {
+// NewAdb creates a new Adb struct with the specified DeviceID, PackageName, MainActivity, and WithAllPermissions.
+// NOTE withAllPermissions requires root access. make sure to have root access before using it. otherwise run withAllPermison = false.
+func NewAdb(deviceID, packageName, mainActivity string, withAllPermissions bool) *Adb {
 	return &Adb{
-		DeviceID:     deviceID,
-		PackageName:  packageName,
-		MainActivity: mainActivity,
+		DeviceID:           deviceID,
+		PackageName:        packageName,
+		MainActivity:       mainActivity,
+		WithAllPermissions: withAllPermissions,
 	}
 }
 
@@ -93,10 +96,48 @@ func (adb *Adb) UninstallApp() error {
 }
 
 // LaunchApp launches the app with the specified activity.
+// If WithAllPermissions is set to true, all permissions will be granted to the app.
 func (adb *Adb) LaunchApp() error {
+	if adb.WithAllPermissions {
+		err := adb.GrantAllPermissions()
+		if err != nil {
+			return fmt.Errorf("failed to grant all permissions to app - %v", err)
+		}
+	}
+
 	_, err := core.RunAdbCommand("shell", "am", "start", "-n", fmt.Sprintf("%s/%s", adb.PackageName, adb.MainActivity), "-S")
 	if err != nil {
 		return fmt.Errorf("failed to launch app - %v", err)
+	}
+	return nil
+}
+
+// GrantAllPermissions grants all permissions to the app.
+// NOTE - This requires root access.
+func (adb *Adb) GrantAllPermissions() error {
+	err := core.GrantAllPermissions(adb.PackageName)
+	if err != nil {
+		return fmt.Errorf("failed to grant all permissions to app - %v", err)
+	}
+	return nil
+}
+
+// GrantPermission grants a specific permission to the app.
+// NOTE - This requires root access.
+func (adb *Adb) GrantPermission(permission AndroidPermission) error {
+	err := core.GrantPermission(adb.PackageName, PermissionStrings[permission])
+	if err != nil {
+		return fmt.Errorf("failed to grant permission %s - %v", PermissionStrings[permission], err)
+	}
+	return nil
+}
+
+// RevokePermission revokes a specific permission from the app.
+// NOTE - This requires root access.
+func (adb *Adb) RevokePermission(permission string) error {
+	err := core.RevokePermission(adb.PackageName, permission)
+	if err != nil {
+		return fmt.Errorf("failed to revoke permission %s - %v", permission, err)
 	}
 	return nil
 }
@@ -252,6 +293,15 @@ func InputText(text string) error {
 	_, err := core.RunAdbCommand("shell", "input", "text", text)
 	if err != nil {
 		return fmt.Errorf("failed to input text %s - %v", text, err)
+	}
+	return nil
+}
+
+// SendKeyevent sends a key event to the device.
+func SendKeyevent(keyEvent KeyEvent) error {
+	_, err := core.RunAdbCommand("shell", "input", "keyevent", KeyEvents[keyEvent])
+	if err != nil {
+		return fmt.Errorf("failed to send key event %d - %v", keyEvent, err)
 	}
 	return nil
 }
