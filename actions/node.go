@@ -71,6 +71,23 @@ func (node *Node) FindElementByText(text string) (*Node, error) {
 	return &Node{}, fmt.Errorf("element with text %s not found", text)
 }
 
+// FindElementByClass function to find an element by class.
+func (node *Node) FindElementByClass(className string) (*Node, error) {
+	for _, atrr := range node.Attributes {
+		if atrr.Name.Local == "class" && atrr.Value == className {
+			return node, nil
+		}
+	}
+
+	for _, child := range node.Children {
+		if found, err := child.FindElementByClass(className); err == nil {
+			return found, nil
+		}
+	}
+
+	return &Node{}, fmt.Errorf("element with class %s not found", className)
+}
+
 // FindElementByContentDesc function to find an element by content-desc.
 func (node *Node) FindElementByContentDesc(contentDesc string) (*Node, error) {
 	for _, atrr := range node.Attributes {
@@ -122,4 +139,13 @@ func MustGetPage() *Node {
 		panic(err)
 	}
 	return node
+}
+
+// MustGetElementByClass function to find an element by class and panic if not found.
+func (node *Node) MustGetElementByClass(className string) *Node {
+	n, err := node.FindElementByClass(className)
+	if err != nil {
+		panic(err)
+	}
+	return n
 }

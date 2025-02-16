@@ -160,8 +160,23 @@ func (adb *Adb) ClearAppData() error {
 	return nil
 }
 
+// QuitApp stops the app and clears its data.
+func (adb *Adb) QuitApp() error {
+	err := adb.StopApp()
+	if err != nil {
+		return fmt.Errorf("failed to stop app - %v", err)
+	}
+
+	err = adb.ClearAppData()
+	if err != nil {
+		return fmt.Errorf("failed to clear app data - %v", err)
+	}
+
+	return nil
+}
+
 // GetDeviceProperty retrieves a specific device property by its name.
-func (adb *Adb) GetDeviceProperty(property string) (string, error) {
+func GetDeviceProperty(property string) (string, error) {
 	out, err := core.RunAdbCommand("shell", "getprop", property)
 	if err != nil {
 		return "", fmt.Errorf("failed to read property %s: %v", property, err)
@@ -290,7 +305,7 @@ func SwipeWithDuration(x1, y1, x2, y2, duration int) error {
 
 // InputText inputs the specified text on the device.
 func InputText(text string) error {
-	_, err := core.RunAdbCommand("shell", "input", "text", text)
+	_, err := core.RunAdbCommand("shell", "input", "text", fmt.Sprintf("'%s'", text))
 	if err != nil {
 		return fmt.Errorf("failed to input text %s - %v", text, err)
 	}
@@ -304,4 +319,22 @@ func SendKeyevent(keyEvent KeyEvent) error {
 		return fmt.Errorf("failed to send key event %d - %v", keyEvent, err)
 	}
 	return nil
+}
+
+// OpenChrome opens the Chrome browser on the device.
+func OpenChrome(url string) error {
+	_, err := core.RunAdbCommand("shell", "am", "start", "-n", "com.android.chrome/com.google.android.apps.chrome.Main", "-d", url)
+	if err != nil {
+		return fmt.Errorf("failed to open Chrome browser - %v", err)
+	}
+	return nil
+}
+
+// MustGetPropertie retrieves a specific device property by its name and returns it as a string.
+func MustGetPropertie(prop string) string {
+	out, err := GetDeviceProperty(prop)
+	if err != nil {
+		return ""
+	}
+	return strings.Trim(out, " ")
 }
